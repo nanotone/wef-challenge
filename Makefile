@@ -5,7 +5,7 @@ swfs += WEF.swf
 
 all: $(swfs)
 
-%.swf: *.as makeData.py
+%.swf: *.as *.py
 	@echo "exporting data to Data.as"
 	python matrix.py
 	$(cc) -incremental=true -source-path=. -static-link-runtime-shared-libraries=true $*.as 

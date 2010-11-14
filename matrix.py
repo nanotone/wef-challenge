@@ -19,7 +19,7 @@ for (i, name) in enumerate(matrix[0][1:]):
 	nodeData = outbound #{"name": name, "outbound": outbound}
 	for row in rows:
 		score = float(row["data"][i])
-		if score > 0.5:
+		if score > 0.4:
 			outbound.append(row["token"])
 	nodes[tokenize(name)] = nodeData
 
