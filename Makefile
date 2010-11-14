@@ -7,7 +7,7 @@ all: $(swfs)
 
 %.swf: *.as makeData.py
 	@echo "exporting data to Data.as"
-	python makeData.py
+	python matrix.py
 	$(cc) -incremental=true -source-path=. -static-link-runtime-shared-libraries=true $*.as 
 	#cp $@ $(devel)/
 
