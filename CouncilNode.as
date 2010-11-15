@@ -64,8 +64,8 @@ public class CouncilNode {
 
 	private var isRelated:Boolean = false;
 
-	public function CouncilNode(token:String, nodeInfo:Object) {
-		this.token = token;
+	public function CouncilNode(nodeInfo:Object) {
+		this.token = nodeInfo.token;
 		this.fullName = nodeInfo.name;
 		this.outboundData = nodeInfo.outbound;
 

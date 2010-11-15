@@ -13,18 +13,18 @@ def tokenize(text): return re.sub(r'[^\w\.]+', "_", text)
 
 rows = [ {"token": tokenize(row[0]), "data": row[1:] } for row in matrix[1:]]
 
-nodes = {}
+nodeList = []
 for (i, name) in enumerate(matrix[0][1:]):
 	outbound = []
-	nodeData = {"name": name, "outbound": outbound}
+	nodeData = {"name": name, "outbound": outbound, 'token': tokenize(name)}
 	for row in rows:
 		score = float(row["data"][i])
 		if score > 0.0:
 			outbound.append({'token': row["token"], 'score': score})
-	nodes[tokenize(name)] = nodeData
+	nodeList.append(nodeData)
 
 #import json
 #print json.dumps(columns, indent=4)
 
 import makeData
-makeData.dumpToFlex(nodes)
+makeData.dumpToFlex(nodeList)
