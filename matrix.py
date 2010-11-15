@@ -1,3 +1,28 @@
+import pprint
+
+###############################################################################
+
+categoryExport = {}
+currentCategory = None
+currentArray = []
+for line in open("categories2.txt"):
+	line = line.strip()
+	if not currentCategory:
+		currentCategory = line
+		currentArray = []
+		continue
+	if line:
+		pieces = line.split(" ", 1)
+		currentArray.append(pieces[1])
+	else:
+		categoryExport[currentCategory] = currentArray
+		currentCategory = None
+if currentCategory:
+	categoryExport[currentCategory] = currentArray
+	currentCategory = None
+
+###############################################################################
+
 import re
 
 COMMA = "<COMMA>"
@@ -21,10 +46,21 @@ for (i, name) in enumerate(matrix[0][1:]):
 		score = float(row["data"][i])
 		if score > 0.0:
 			outbound.append({'token': row["token"], 'score': score})
-	nodeList.append(nodeData)
+	#nodeList.append(nodeData)
+	for catKey in categoryExport:
+		catList = categoryExport[catKey]
+		try:
+			catList[catList.index(name)] = nodeData
+			break
+		except ValueError: pass
+	else:
+		print name, "council not found in any category"
 
-#import json
-#print json.dumps(columns, indent=4)
+#pprint.pprint(categoryExport)
+#sys.exit()
+
+###############################################################################
 
 import makeData
-makeData.dumpToFlex(nodeList)
+#makeData.dumpToFlex(nodeList)
+makeData.dumpToFlex(categoryExport)
