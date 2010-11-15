@@ -55,7 +55,7 @@ public class CouncilNode {
 
 	private static var drawn:Boolean = false;
 	public function drawNode():void {
-		var dThetaOver2:Number = WEF.twoPi / WEF.nNodes / 2;
+		var dThetaOver2:Number = WEF.twoPi / wef.nodes.length / 2;
 		var angle1:Number = this.theta - dThetaOver2;
 		var angle2:Number = this.theta;
 		var angle3:Number = this.theta + dThetaOver2;
@@ -74,11 +74,11 @@ public class CouncilNode {
 		this.nodeShape.graphics.endFill();
 	}
 
-	public function setTheta(theta:Number):void {
-		while (Math.abs(theta) > Math.PI + 0.01) {
-			theta -= (theta > 0 ? WEF.twoPi : -WEF.twoPi);
+	public function setId(id:uint):void {
+		this.theta = id * WEF.twoPi / wef.nodes.length;
+		while (Math.abs(this.theta) > Math.PI + 0.01) {
+			this.theta -= (this.theta > 0 ? WEF.twoPi : -WEF.twoPi);
 		}
-		this.theta = theta;
 		if (-WEF.piOverTwo < theta && theta < WEF.piOverTwo) {
 			this.nameLabelContain.x = this.getX();
 			this.nameLabelContain.y = this.getY();
@@ -139,6 +139,7 @@ public class CouncilNode {
 				color = inboundEdgeColor;
 			}
 			else {
+				continue;
 				color = unrelatedEdgeColor;
 			}
 			var edge:Shape = new Shape();

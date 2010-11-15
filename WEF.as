@@ -9,7 +9,6 @@ public class WEF extends Sprite {
 
 	public static const twoPi:Number = 2 * Math.PI;
 	public static const piOverTwo:Number = 0.5 * Math.PI;
-	public static var nNodes:uint = 72;
 
 	[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
 	private var __andika:Class;
@@ -19,7 +18,7 @@ public class WEF extends Sprite {
 	public var edgeLayer:Sprite;
 	public var textLayer:Sprite;
 
-	private var nodes:Array = [];
+	public var nodes:Array = [];
 
 	public var nodesByName:Object = {};
 
@@ -44,10 +43,8 @@ public class WEF extends Sprite {
 			nodes.push(node);
 		}
 
-		var i:int;
-		for (i = 0; i < nodes.length; i++) {
-			node = nodes[i];
-			node.setTheta(i * twoPi / nodes.length);
+		for (var i:uint = 0; i < nodes.length; i++) {
+			nodes[i].setId(i);
 		}
 		this.updateEdges();
 		this.addEventListener(Event.ENTER_FRAME, update);
@@ -59,7 +56,6 @@ public class WEF extends Sprite {
 			node.updateOutboundEdges();
 		}
 	}
-
 
 	public function update(event:Event):void {
 		//Debug.log("aoeu");
