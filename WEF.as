@@ -4,19 +4,18 @@ import flash.display.*;
 import flash.events.*;
 import flash.net.*;
 
-/*import microthread.*;
-import utils.*;
-import controls.*;
-*/
-
-[SWF(backgroundColor="#808080", width="800", height="600")]
+[SWF(backgroundColor="#C0C0C0", width="800", height="600")]
 public class WEF extends Sprite {
 
 	public static const twoPi:Number = 2 * 3.14159265358979323;
 
+	[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
+	private var __andika:Class;
+
 	public var canvas:Sprite;
 	public var nodeLayer:Sprite;
 	public var edgeLayer:Sprite;
+	public var textLayer:Sprite;
 
 	private var nodes:Array = [];
 
@@ -32,8 +31,10 @@ public class WEF extends Sprite {
 		canvas.x = 300; canvas.y = 300;
 		nodeLayer = new Sprite();
 		edgeLayer = new Sprite();
+		textLayer = new Sprite();
 		canvas.addChild(edgeLayer);
 		canvas.addChild(nodeLayer);
+		canvas.addChild(textLayer);
 
 		for (var key:String in Data.data) {
 			node = new CouncilNode(this, Data.data[key]);

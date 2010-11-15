@@ -5,7 +5,7 @@ def dumpToFlex(obj):
 	f.write("""package {
 public class Data {
 	public static var data:Object = """)
-	json.dump(obj, f, indent=4)
+	json.dump(obj, f, indent=4, encoding="latin-1")
 	f.write(""";
 }}""")
 

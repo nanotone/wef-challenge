@@ -16,7 +16,7 @@ rows = [ {"token": tokenize(row[0]), "data": row[1:] } for row in matrix[1:]]
 nodes = {}
 for (i, name) in enumerate(matrix[0][1:]):
 	outbound = []
-	nodeData = outbound #{"name": name, "outbound": outbound}
+	nodeData = {"name": name, "outbound": outbound}
 	for row in rows:
 		score = float(row["data"][i])
 		if score > 0.4:
