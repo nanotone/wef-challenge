@@ -7,7 +7,9 @@ import flash.net.*;
 [SWF(backgroundColor="#C0C0C0", width="800", height="600")]
 public class WEF extends Sprite {
 
-	public static const twoPi:Number = 2 * 3.14159265358979323;
+	public static const twoPi:Number = 2 * Math.PI;
+	public static const piOverTwo:Number = 0.5 * Math.PI;
+	public static var nNodes:uint = 72;
 
 	[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
 	private var __andika:Class;
@@ -45,8 +47,7 @@ public class WEF extends Sprite {
 		var i:int;
 		for (i = 0; i < nodes.length; i++) {
 			node = nodes[i];
-			node.setPosition(Config.RADIUS * Math.cos(i * twoPi / nodes.length),
-			                 Config.RADIUS * Math.sin(i * twoPi / nodes.length) );
+			node.setTheta(i * twoPi / nodes.length);
 		}
 		this.updateEdges();
 		this.addEventListener(Event.ENTER_FRAME, update);

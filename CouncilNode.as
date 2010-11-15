@@ -8,11 +8,9 @@ import controls.*;
 
 public class CouncilNode {
 
-	//public static var fonts:Object = null;
-
 	public static var selectedNode:CouncilNode = null;
 
-	private static var nodeColor:uint = 0xFF6000;
+	private static var nodeColor:uint = 0xFFB060;
 	private static var selectedNodeColor:uint = 0xFF0000;
 
 	private static var edgeColor:uint = 0x202020;
@@ -24,88 +22,97 @@ public class CouncilNode {
 	private var fullName:String;
 	private var outboundData:Array;
 
-	private var root:Sprite;
+	private var theta:Number;
+
+	private var nodeRoot:Sprite;
 	private var nodeShape:Shape;
-	//private var nameLabel:TextField;
+	private var nameLabelContain:Sprite;
 	private var nameLabel:Label;
 	private var edges:Array = [];
-
-	/*public static function setFont(tf:TextField, value:String):void {
-		if (value == null) { return; }
-		var format:TextFormat = tf.defaultTextFormat;
-		format.font = value;
-		if (value == "" || value.substr(0, 1) == "_") {
-			tf.embedFonts = false;
-		}
-		else {
-			if (fonts == null) {
-				Debug.log("Creating fonts cache");
-				fonts = {};
-				var fontObjs:Array = Font.enumerateFonts();
-				for (var i:uint = 0; i < fontObjs.length; i++) {
-					Debug.log("Adding " + fontObjs[i].fontName + " to fonts cache");
-					fonts[fontObjs[i].fontName] = true;
-				}
-			}
-			if (fonts.hasOwnProperty(value)) {
-				tf.embedFonts = true;
-			}
-			else {
-				Debug.log("WARNING: missing embedded font " + value);
-				format.font = "";
-				tf.embedFonts = false;
-			}
-		}
-		tf.defaultTextFormat = format;
-		tf.setTextFormat(format);
-	}*/
 
 	public function CouncilNode(wef:WEF, nodeInfo:Object) {
 		this.wef = wef;
 		this.fullName = nodeInfo.name;
 		this.outboundData = nodeInfo.outbound;
 
-		this.root = new Sprite();
+		this.nodeRoot = new Sprite();
 		this.nodeShape = new Shape();
-		this.drawNode();
-		this.root.addChild(this.nodeShape);
+		this.nodeRoot.addChild(this.nodeShape);
 
-      this.root.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
-		this.root.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeUnhover);
-		this.wef.nodeLayer.addChild(this.root);
+      this.nodeRoot.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
+		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeUnhover);
+		this.wef.nodeLayer.addChild(this.nodeRoot);
 
-		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 11});
-		//this.nameLabel = new TextField();
-		//setFont(this.nameLabel, "AndikaBasic");
-		//this.nameLabel.text = this.fullName;
-		this.wef.textLayer.addChild(this.nameLabel);
+		this.nameLabelContain = new Sprite();
+		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 11, 'width': 200});
+		this.nameLabelContain.addChild(this.nameLabel);
+		this.nameLabel.y = - this.nameLabel.height / 2;
+		this.wef.textLayer.addChild(this.nameLabelContain);
+
+		this.nameLabel.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
+		this.nameLabel.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeHover);
 	}
 
+	private static var drawn:Boolean = false;
 	public function drawNode():void {
+		var dThetaOver2:Number = WEF.twoPi / WEF.nNodes / 2;
+		var angle1:Number = this.theta - dThetaOver2;
+		var angle2:Number = this.theta;
+		var angle3:Number = this.theta + dThetaOver2;
+		var innerRadius:Number = Config.RADIUS;
+		var outerRadius:Number = Config.RADIUS + 210;
+		var OUTERRADIUS:Number = outerRadius / Math.cos(dThetaOver2);
+
 		this.nodeShape.graphics.clear();
-		var fillColor:uint = (this == selectedNode ? 0xFF0000 : 0xE06000);
-		this.nodeShape.graphics.beginFill(fillColor);
-		this.nodeShape.graphics.drawCircle(0, 0, 8);
+		this.nodeShape.graphics.lineStyle(1, 0x000000);
+		this.nodeShape.graphics.moveTo (innerRadius * Math.cos(angle1), innerRadius * Math.sin(angle1));
+		this.nodeShape.graphics.beginFill(this == selectedNode ? selectedNodeColor : nodeColor);
+		this.nodeShape.graphics.lineTo (outerRadius * Math.cos(angle1), outerRadius * Math.sin(angle1));
+		this.nodeShape.graphics.curveTo(OUTERRADIUS * Math.cos(angle2), OUTERRADIUS * Math.sin(angle2),
+		                                outerRadius * Math.cos(angle3), outerRadius * Math.sin(angle3));
+		this.nodeShape.graphics.lineTo (innerRadius * Math.cos(angle3), innerRadius * Math.sin(angle3));
 		this.nodeShape.graphics.endFill();
 	}
 
-	public function setPosition(x:Number, y:Number):void {
-		this.root.x = x;
-		this.root.y = y;
-		this.nameLabel.x = x;
-		this.nameLabel.y = y;
-		this.nameLabel.width = 200;
-		this.nameLabel.rotation = Math.atan2(y, x) * 180 / Math.PI;
+	public function setTheta(theta:Number):void {
+		while (Math.abs(theta) > Math.PI + 0.01) {
+			theta -= (theta > 0 ? WEF.twoPi : -WEF.twoPi);
+		}
+		this.theta = theta;
+		if (-WEF.piOverTwo < theta && theta < WEF.piOverTwo) {
+			this.nameLabelContain.x = this.getX();
+			this.nameLabelContain.y = this.getY();
+			this.nameLabelContain.rotation = theta * 180 / Math.PI;
+			this.nameLabel.align = TextFormatAlign.RIGHT;
+		}
+		else {
+			this.nameLabelContain.x = this.getX() * ((Config.RADIUS + 200) / Config.RADIUS);
+			this.nameLabelContain.y = this.getY() * ((Config.RADIUS + 200) / Config.RADIUS);
+			this.nameLabelContain.rotation = (theta + Math.PI) * 180 / Math.PI;
+			this.nameLabel.align = TextFormatAlign.LEFT;
+		}
+		this.drawNode();
 	}
-	public function getX():Number { return this.root.x; }
-	public function getY():Number { return this.root.y; }
+
+	public function getX():Number { return Config.RADIUS * Math.cos(this.theta); }
+	public function getY():Number { return Config.RADIUS * Math.sin(this.theta); }
 
    private function onNodeHover(e:MouseEvent):void {
-		CouncilNode.selectedNode = this;
-		this.drawNode();
-		this.wef.updateEdges();
+		if (this != CouncilNode.selectedNode) {
+			var prevSelectedNode:CouncilNode = CouncilNode.selectedNode;
+			CouncilNode.selectedNode = this;
+			if (prevSelectedNode != null) {
+				prevSelectedNode.drawNode();
+			}
+			this.drawNode();
+			this.wef.updateEdges();
+		}
 	}
 	private function onNodeUnhover(e:MouseEvent):void {
+		var relatedObject:DisplayObject = e.relatedObject as DisplayObject;
+		if (this.nodeRoot.contains(relatedObject) || this.nameLabelContain.contains(relatedObject)) {
+			return;
+		}
 		if (CouncilNode.selectedNode == this) {
 			CouncilNode.selectedNode = null;
 		}
@@ -137,13 +144,13 @@ public class CouncilNode {
 			var edge:Shape = new Shape();
 			edge.graphics.clear();
 			edge.graphics.lineStyle(1, color);
-			edge.graphics.moveTo(this.root.x, this.root.y);
-			var dx:Number = other.getX() - nodeShape.x;
-			var dy:Number = other.getY() - nodeShape.y;
+			edge.graphics.moveTo(this.getX(), this.getY());
+			var dx:Number = other.getX() - this.getX();
+			var dy:Number = other.getY() - this.getY();
 			var ds:Number = Math.sqrt(dx*dx + dy*dy) / Config.RADIUS;
 
-			var anchorX:Number = ((other.getX() + nodeShape.x) / 2.0 + 0*ds) / (1 + ds*10);
-			var anchorY:Number = ((other.getY() + nodeShape.y) / 2.0 + 0*ds) / (1 + ds*10);
+			var anchorX:Number = ((other.getX() + this.getX()) / 2.0 + 0*ds) / (1 + ds*10);
+			var anchorY:Number = ((other.getY() + this.getY()) / 2.0 + 0*ds) / (1 + ds*10);
 			edge.graphics.curveTo(anchorX, anchorY, other.getX(), other.getY());
 
 			if (color == unrelatedEdgeColor) {
