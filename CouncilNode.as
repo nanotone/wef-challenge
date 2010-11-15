@@ -127,10 +127,14 @@ public class CouncilNode {
 		}
 		edges = [];
 		for (i = 0; i < outboundData.length; i++) {
-			var other:CouncilNode = wef.nodesByName[outboundData[i]];
+			var outboundDatum:Array = outboundData[i];
+			var otherName:String = outboundDatum[0];
+			var score:Number = outboundDatum[1];
+			var other:CouncilNode = wef.nodesByName[otherName];
 			var color:uint;
 			if (CouncilNode.selectedNode == null) {
 				color = edgeColor;
+				if (score < 0.5) { continue; } // enforce threshold for global view
 			}
 			else if (CouncilNode.selectedNode == this) {
 				color = outboundEdgeColor;

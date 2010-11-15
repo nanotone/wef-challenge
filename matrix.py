@@ -19,8 +19,8 @@ for (i, name) in enumerate(matrix[0][1:]):
 	nodeData = {"name": name, "outbound": outbound}
 	for row in rows:
 		score = float(row["data"][i])
-		if score > 0.4:
-			outbound.append(row["token"])
+		if score > 0.0:
+			outbound.append([row["token"], score])
 	nodes[tokenize(name)] = nodeData
 
 #import json
