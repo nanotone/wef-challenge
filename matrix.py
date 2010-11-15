@@ -20,7 +20,7 @@ for (i, name) in enumerate(matrix[0][1:]):
 	for row in rows:
 		score = float(row["data"][i])
 		if score > 0.0:
-			outbound.append([row["token"], score])
+			outbound.append({'token': row["token"], 'score': score})
 	nodes[tokenize(name)] = nodeData
 
 #import json

@@ -10,6 +10,8 @@ public class WEF extends Sprite {
 	public static const twoPi:Number = 2 * Math.PI;
 	public static const piOverTwo:Number = 0.5 * Math.PI;
 
+	public static var instance:WEF;
+
 	[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
 	private var __andika:Class;
 
@@ -24,6 +26,7 @@ public class WEF extends Sprite {
 
 	public function WEF() {
 		Debug.attachTo(this);
+		WEF.instance = this;
 
 		var node:CouncilNode;
 
@@ -38,7 +41,7 @@ public class WEF extends Sprite {
 		canvas.addChild(textLayer);
 
 		for (var key:String in Data.data) {
-			node = new CouncilNode(this, Data.data[key]);
+			node = new CouncilNode(key, Data.data[key]);
 			nodesByName[key] = node;
 			nodes.push(node);
 		}
@@ -52,10 +55,10 @@ public class WEF extends Sprite {
 
 	public function updateEdges():void {
 		for (var i:uint = 0; i < nodes.length; i++) {
-			var node:CouncilNode = nodes[i];
-			node.updateOutboundEdges();
+			nodes[i].updateOutboundEdges();
 		}
 	}
+
 
 	public function update(event:Event):void {
 		//Debug.log("aoeu");
