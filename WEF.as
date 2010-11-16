@@ -26,6 +26,11 @@ public class WEF extends Sprite {
 	private var speechBubbleCls:Class;
 	private var speechBubble:Bitmap;
 
+	[Embed(source="embed/BackButton.png")]
+	private var backButtonCls:Class;
+	private var backButton:Bitmap;
+	public var backButtonSprite:Sprite;
+
 	public var canvas:Sprite;
 	public var nodeLayer:Sprite;
 	public var edgeLayer:Sprite;
@@ -46,6 +51,12 @@ public class WEF extends Sprite {
 	public var nodesByName:Object = {};
 
 
+	public function onClickBackButton(e:MouseEvent):void {
+		CouncilNode.setHoveredNode(null);
+		CouncilNode.setSelectedNode(null);
+		backButtonSprite.visible = false;
+	}
+
 	public function WEF() {
 		Debug.attachTo(this);
 		WEF.instance = this;
@@ -57,7 +68,18 @@ public class WEF extends Sprite {
 		var node:CouncilNode;
 
 		var bg:DisplayObject = new bgCls();
-		this.addChild(bg);
+		var bgSprite:Sprite = new Sprite();
+		bgSprite.addChild(bg);
+		this.addChild(bgSprite);
+
+		backButtonSprite = new Sprite();
+		backButton = new backButtonCls();
+		backButtonSprite.addChild(backButton);
+		backButtonSprite.addEventListener(MouseEvent.CLICK, this.onClickBackButton);
+		backButtonSprite.x = 920;
+		backButtonSprite.y = -214;
+		backButtonSprite.visible = false;
+		this.addChild(backButtonSprite);
 
 		canvas = new Sprite();
 		this.addChild(canvas);
@@ -99,12 +121,13 @@ public class WEF extends Sprite {
 		commentField.multiline = true;
 		commentField.wordWrap = true;
 		commentField.width = 280;
-		commentField.height = 400;
+		commentField.height = 450;
 		commentField.textColor = 0xFFFFFF;
 		commentField.embedFonts = true;
 
-		TextFormat format = commentField.defaultTextFormat;
+		var format:TextFormat = commentField.defaultTextFormat;
 		format.font = "AndikaBasic";
+		format.size = 14;
 		commentField.defaultTextFormat = format;
 		commentField.setTextFormat(format);
 

@@ -35,7 +35,7 @@ public class CouncilNode {
 
 	private static var mutualArrowColor:uint = 0xFFFFFF;
 
-	private static function setHoveredNode(node:CouncilNode):void {
+	public static function setHoveredNode(node:CouncilNode):void {
 		if (node == CouncilNode.hoveredNode) { return; }
 		var i:uint;
 		var prevHoveredNode:CouncilNode = CouncilNode.hoveredNode;
@@ -69,7 +69,7 @@ public class CouncilNode {
 		mode = (mode == "_Countries" ? "_Orgs" : "_Countries");
 	}
 
-	private static function setSelectedNode(node:CouncilNode):void {
+	public static function setSelectedNode(node:CouncilNode):void {
 		//if (node == CouncilNode.selectedNode) { return; } // no-op
 		if (node == CouncilNode.selectedNode) { node = null; } // no-op
 		var i:uint;
@@ -90,6 +90,7 @@ public class CouncilNode {
 			WEF.instance.secondaryLayer.removeChildAt(0);
 		}
 
+		WEF.instance.backButtonSprite.visible = true;//(node != null);
 		if (node != null) {
 			node.drawNode();
 			for (i = 0; i < node.outboundData.length; i++) {
@@ -142,7 +143,7 @@ public class CouncilNode {
 		this.nodeShape = new Shape();
 		this.nodeRoot.addChild(this.nodeShape);
 
-      this.nodeRoot.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
+		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
 		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeUnhover);
 		this.nodeRoot.addEventListener(MouseEvent.CLICK, this.onClickNode);
 		WEF.instance.nodeLayer.addChild(this.nodeRoot);
