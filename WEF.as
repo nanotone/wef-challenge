@@ -4,7 +4,7 @@ import flash.display.*;
 import flash.events.*;
 import flash.net.*;
 
-[SWF(backgroundColor="#C0C0C0", width="800", height="600")]
+[SWF(backgroundColor="#FFFFFF", width="800", height="600")]
 public class WEF extends Sprite {
 
 	public static const twoPi:Number = 2 * Math.PI;

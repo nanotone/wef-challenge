@@ -11,20 +11,14 @@ public class CouncilNode {
 	public static var selectedNode:CouncilNode = null;
 
 	public static const colorSchemesByCategoryId:Array = [
-		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6 }, // blue
-		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF }, // yellow
-		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC }, // green
-		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0 }, // red
-		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB } ]; // orange
+		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6, selected: 0x005E70, related: 0xFF0000 }, // blue
+		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF, selected: 0x925517, related: 0xFF0000 }, // yellow
+		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC, selected: 0x006E66, related: 0xFF0000 }, // green
+		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0, selected: 0x740728, related: 0xFF0000 }, // red
+		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB, selected: 0x8A200A, related: 0xFF0000 } ]; // orange
 
-	//private static var nodeColor:uint = 0xFFB060;
-	private static var selectedNodeColor:uint = 0xFF0000;
-	private static var relatedNodeColor:uint = 0xFF8080;
-
-	private static var edgeColor:uint = 0x202020;
-	private static var inboundEdgeColor:uint = 0x000000;
-	private static var outboundEdgeColor:uint = 0xFFFFFF;
-	private static var unrelatedEdgeColor:uint = 0xA0A0A0;
+	private static var defaultEdgeColor:uint = 0xE0E0E0;
+	//private static var unrelatedEdgeColor:uint = 0xA0A0A0;
 
 	private static function setSelectedNode(node:CouncilNode):void {
 		if (node == selectedNode) { return; }
@@ -168,15 +162,11 @@ public class CouncilNode {
 
 		var zebra:String = "zebra" + (this.id % 2 ? "0" : "1");
 		var color:uint = colorSchemesByCategoryId[this.categoryId][zebra];
-		if (this.id == 5) {
-			color = 0xFF0000;
-			color = 0xDFF5F8;
-		}
 		if (this == selectedNode) {
-			color = colorSchemesByCategoryId[this.categoryId].zebra1;
+			color = colorSchemesByCategoryId[this.categoryId].selected;
 		}
 		else if (this.isRelated) {
-			color = relatedNodeColor;
+			color = colorSchemesByCategoryId[this.categoryId].related;
 		}
 
 		this.nodeShape.graphics.clear();
@@ -202,18 +192,18 @@ public class CouncilNode {
 			var other:CouncilNode = WEF.instance.nodesByName[outboundDatum.token];
 			var color:uint;
 			if (CouncilNode.selectedNode == null) {
-				color = edgeColor;
+				color = defaultEdgeColor;
 				if (outboundDatum.score < 0.5) { continue; } // enforce threshold for global view
 			}
 			else if (CouncilNode.selectedNode == this) {
-				color = outboundEdgeColor;
+				color = colorSchemesByCategoryId[this.categoryId].selected;
 			}
 			else if (CouncilNode.selectedNode == other) {
-				color = inboundEdgeColor;
+				color = colorSchemesByCategoryId[other.categoryId].related;
 			}
 			else {
 				continue;
-				color = unrelatedEdgeColor;
+				//color = unrelatedEdgeColor;
 			}
 			var edge:Shape = new Shape();
 			edge.graphics.clear();
@@ -227,12 +217,13 @@ public class CouncilNode {
 			var anchorY:Number = ((other.getY() + this.getY()) / 2.0 + 0*ds) / (1 + ds*10);
 			edge.graphics.curveTo(anchorX, anchorY, other.getX(), other.getY());
 
-			if (color == unrelatedEdgeColor) {
+			/*if (color == unrelatedEdgeColor) { // should never need to make this distinction
 				WEF.instance.edgeLayer.addChildAt(edge, 0);
 			}
 			else {
 				WEF.instance.edgeLayer.addChild(edge);
-			}
+			}*/
+			WEF.instance.edgeLayer.addChild(edge);
 			edges.push(edge);
 		}
 	}
