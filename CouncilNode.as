@@ -8,10 +8,11 @@ import controls.*;
 
 public class CouncilNode {
 
-	public static const RADIUS:uint = 200;
+	public static const RADIUS:uint = 171;
+	public static const RADIUS2:uint = 416;
 
-	public static const R_SRC0:uint = RADIUS - 30;
-	public static const R_SRC1:uint = R_SRC0 - 8;
+	public static const R_SRC0:uint = 134;//RADIUS - 30;
+	public static const R_SRC1:uint = R_SRC0 - 6;
 
 	public static const R_DST0:uint = RADIUS + 40;
 	public static const R_DST1:uint = R_DST0 + 8;
@@ -23,13 +24,13 @@ public class CouncilNode {
 	public static var selectedNode:CouncilNode = null;
 
 	public static const colorSchemesByCategoryId:Array = [
-		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6, selected: 0x005E70, related: 0x25B5D5 }, // blue
 		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF, selected: 0x925517, related: 0xD6AD60 }, // yellow
-		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC, selected: 0x006E66, related: 0x45BDAB }, // green
 		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0, selected: 0x740728, related: 0xED346B }, // red
+		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6, selected: 0x005E70, related: 0x25B5D5 }, // blue
+		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC, selected: 0x006E66, related: 0x45BDAB }, // green
 		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB, selected: 0x8A200A, related: 0xF25B38 } ]; // orange
 
-	private static var defaultEdgeColor:uint = 0xE0E0E0;
+	private static var defaultEdgeColor:uint = 0xC0C0C0;
 	//private static var unrelatedEdgeColor:uint = 0xA0A0A0;
 
 	private static var mutualArrowColor:uint = 0xFFFFFF;
@@ -44,7 +45,7 @@ public class CouncilNode {
 		if (prevHoveredNode != null) {
 			prevHoveredNode.drawNode();
 			for (i = 0; i < WEF.instance.nodes.length; i++) { // set all nodes to unrelated
-				WEF.instance.nodes[i].setRelated(false);
+				WEF.instance.nodes[i].setRelated(0);
 			}
 		}
 		if (node != null) {
@@ -52,18 +53,25 @@ public class CouncilNode {
 			for (i = 0; i < node.outboundData.length; i++) {
 				otherNodeName = node.outboundData[i].token;
 				otherNode = WEF.instance.nodesByName[otherNodeName];
-				otherNode.setRelated(true);
+				otherNode.setRelated(otherNode.isRelated + node.outboundData[i].score);
 			}
 			for (i = 0; i < WEF.instance.nodes.length; i++) {
 				otherNode = WEF.instance.nodes[i];
-				if (otherNode.hasEdgeTo(node)) { otherNode.setRelated(true); }
+				var value:Number = otherNode.hasEdgeTo(node);
+				otherNode.setRelated(otherNode.isRelated + value);
 			}
 		}
 		WEF.instance.updateEdges();
 	}
 
+	public static var mode:String = "_Countries";
+	public static function toggleMode():void {
+		mode = (mode == "_Countries" ? "_Orgs" : "_Countries");
+	}
+
 	private static function setSelectedNode(node:CouncilNode):void {
-		if (node == CouncilNode.selectedNode) { return; } // no-op
+		//if (node == CouncilNode.selectedNode) { return; } // no-op
+		if (node == CouncilNode.selectedNode) { node = null; } // no-op
 		var i:uint;
 		var prevSelectedNode:CouncilNode = CouncilNode.selectedNode;
 		CouncilNode.selectedNode = node;
@@ -73,34 +81,46 @@ public class CouncilNode {
 		if (prevSelectedNode != null) {
 			prevSelectedNode.drawNode();
 			for (i = 0; i < WEF.instance.nodes.length; i++) {
-				WEF.instance.nodes[i].setRelated(false);
+				WEF.instance.nodes[i].setRelated(0);
 			}
 		}
+
+		WEF.instance.clearSecondaryCenter();
+		if (WEF.instance.secondaryLayer.numChildren) {
+			WEF.instance.secondaryLayer.removeChildAt(0);
+		}
+
 		if (node != null) {
 			node.drawNode();
 			for (i = 0; i < node.outboundData.length; i++) {
 				otherNodeName = node.outboundData[i].token;
 				otherNode = WEF.instance.nodesByName[otherNodeName];
-				otherNode.setRelated(true);
+				otherNode.setRelated(0);
 			}
 			for (i = 0; i < WEF.instance.nodes.length; i++) {
 				otherNode = WEF.instance.nodes[i];
-				if (otherNode.hasEdgeTo(node)) { otherNode.setRelated(true); }
+				var value:Number = otherNode.hasEdgeTo(node);
+				otherNode.setRelated(otherNode.isRelated + value);
 			}
 			WEF.instance.drawSecondaryCenter(colorSchemesByCategoryId[node.categoryId].selected);
+
+			mode = "_Countries";
+			var circles:Circles = new Circles();
+			var circle:DisplayObject = new (circles[CouncilNode.selectedNode.token + mode])() as DisplayObject;
+			WEF.instance.secondaryLayer.addChild(circle);
 		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
 
 	private var categoryId:uint;
-	private var token:String;
+	public var token:String;
 	private var fullName:String;
 	private var outboundData:Array;
 
 	private var id:uint;
 	private var theta:Number;
-	private var isRelated:Boolean = false;
+	private var isRelated:Number = 0;
 
 	// visuals
 	private var nodeRoot:Sprite;
@@ -128,7 +148,7 @@ public class CouncilNode {
 		WEF.instance.nodeLayer.addChild(this.nodeRoot);
 
 		this.nameLabelContain = new Sprite();
-		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 11, 'width': 200});
+		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 13, 'width': 200});
 		this.nameLabelContain.addChild(this.nameLabel);
 		this.nameLabel.y = - this.nameLabel.height / 2;
 		WEF.instance.textLayer.addChild(this.nameLabelContain);
@@ -143,12 +163,12 @@ public class CouncilNode {
 	public function getX():Number { return RADIUS * Math.cos(this.theta); }
 	public function getY():Number { return RADIUS * Math.sin(this.theta); }
 
-	public function hasEdgeTo(other:CouncilNode):Boolean {
+	public function hasEdgeTo(other:CouncilNode):Number {
 		for (var i:uint = 0; i < outboundData.length; i++) {
 			var outboundDatum:Object = outboundData[i];
-			if (outboundDatum.token == other.token) { return true; }
+			if (outboundDatum.token == other.token) { return outboundDatum.score; }
 		}
-		return false;
+		return 0;
 	}
 
 	// mutators
@@ -174,11 +194,9 @@ public class CouncilNode {
 		this.drawNode();
 	}
 
-	public function setRelated(value:Boolean):void {
-		if (value != this.isRelated) {
-			this.isRelated = value;
-			this.drawNode();
-		}
+	public function setRelated(value:Number):void {
+		this.isRelated = value;
+		this.drawNode();
 	}
 
 	// event handlers
@@ -211,18 +229,33 @@ public class CouncilNode {
 		var angle2:Number = this.theta;
 		var angle3:Number = this.theta + dThetaOver2;
 		var innerRadius:Number = RADIUS;
-		var outerRadius:Number = RADIUS + 210;
+		var outerRadius:Number = RADIUS2;
 		var OUTERRADIUS:Number = outerRadius / Math.cos(dThetaOver2);
 
+		var originalColor:uint = colorSchemesByCategoryId[this.categoryId]["zebra" + (this.id % 2 ? "0":"1")];
 		var color:uint;
 		if (this == CouncilNode.hoveredNode || this == CouncilNode.selectedNode) {
 			color = colorSchemesByCategoryId[this.categoryId].selected;
 		}
-		else if (this.isRelated) {
+		else if (this.isRelated > 0) {
 			color = colorSchemesByCategoryId[this.categoryId].related;
 		}
 		else {
-			color = colorSchemesByCategoryId[this.categoryId]["zebra" + (this.id % 2 ? "0":"1")];
+			/*var r1:uint = (color >> 16) % 256;
+			var g1:uint = (color >>  8) % 256;
+			var b1:uint = (color      ) % 256;
+			var r2:uint = (originalColor >> 16) % 256;
+			var g2:uint = (originalColor >>  8) % 256;
+			var b2:uint = (originalColor      ) % 256;
+
+			var score:Number = this.isRelated;
+			if (score < 0.01) { score = 0.01; }
+			if (score > 0.99) { score = 0.99; }
+			r1 = int(r1*score + r2*(1 - score));
+			g1 = int(g1*score + g2*(1 - score));
+			b1 = int(b1*score + b2*(1 - score));
+			color = (r1 << 16) + (g1 << 8) + (b1);*/
+			color = originalColor;
 		}
 
 		var nodeGfx:Graphics = this.nodeShape.graphics;
@@ -237,8 +270,8 @@ public class CouncilNode {
 		nodeGfx.endFill();
 
 		if (CouncilNode.selectedNode != null) {
-			var toSelected:Boolean = this.hasEdgeTo(CouncilNode.selectedNode);
-			var fromSelected:Boolean = CouncilNode.selectedNode.hasEdgeTo(this);
+			var toSelected:Boolean = (this.hasEdgeTo(CouncilNode.selectedNode) > 0);
+			var fromSelected:Boolean = (CouncilNode.selectedNode.hasEdgeTo(this) > 0);
 			var smallRadius:Number;
 			var SMALLRADIUS:Number;
 			if (toSelected && !fromSelected) {
@@ -292,7 +325,6 @@ public class CouncilNode {
 				if (WEF.instance.commentLayer.contains(srcSpeechBubble)) {
 					WEF.instance.commentLayer.removeChild(srcSpeechBubble);
 				}
-				//srcSpeechBubble = null;
 			}
 			if (fromSelected) {
 				commentKey = CouncilNode.selectedNode.token + "-" + this.token;
@@ -313,7 +345,18 @@ public class CouncilNode {
 				if (WEF.instance.commentLayer.contains(dstSpeechBubble)) {
 					WEF.instance.commentLayer.removeChild(dstSpeechBubble);
 				}
-				//dstSpeechBubble = null;
+			}
+		}
+		else {
+			if (srcSpeechBubble != null) {
+				if (WEF.instance.commentLayer.contains(srcSpeechBubble)) {
+					WEF.instance.commentLayer.removeChild(srcSpeechBubble);
+				}
+			}
+			if (dstSpeechBubble != null) {
+				if (WEF.instance.commentLayer.contains(dstSpeechBubble)) {
+					WEF.instance.commentLayer.removeChild(dstSpeechBubble);
+				}
 			}
 		}
 	}
@@ -345,7 +388,7 @@ public class CouncilNode {
 			var other:CouncilNode = WEF.instance.nodesByName[outboundDatum.token];
 			var color:uint;
 			if (CouncilNode.hoveredNode == null) {
-				if (outboundDatum.score < 0.5) { continue; } // enforce threshold for global view
+				if (outboundDatum.score < 0.6) { continue; } // enforce threshold for global view
 				color = defaultEdgeColor;
 			}
 			else if (CouncilNode.hoveredNode == this) {
@@ -360,7 +403,7 @@ public class CouncilNode {
 			}
 			var edge:Shape = new Shape();
 			edge.graphics.clear();
-			edge.graphics.lineStyle(1, color);
+			edge.graphics.lineStyle(2, color, outboundDatum.score);
 			edge.graphics.moveTo(this.getX(), this.getY());
 			var dx:Number = other.getX() - this.getX();
 			var dy:Number = other.getY() - this.getY();
