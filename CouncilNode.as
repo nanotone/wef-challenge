@@ -8,6 +8,15 @@ import controls.*;
 
 public class CouncilNode {
 
+	public static const RADIUS:uint = 200;
+
+	public static const R_SRC0:uint = RADIUS - 30;
+	public static const R_SRC1:uint = R_SRC0 - 8;
+
+	public static const R_DST0:uint = RADIUS + 40;
+	public static const R_DST1:uint = R_DST0 + 8;
+
+	public static var hoveredNode:CouncilNode = null;
 	public static var selectedNode:CouncilNode = null;
 
 	public static const colorSchemesByCategoryId:Array = [
@@ -20,15 +29,17 @@ public class CouncilNode {
 	private static var defaultEdgeColor:uint = 0xE0E0E0;
 	//private static var unrelatedEdgeColor:uint = 0xA0A0A0;
 
-	private static function setSelectedNode(node:CouncilNode):void {
-		if (node == selectedNode) { return; }
+	private static var mutualArrowColor:uint = 0xFFFFFF;
+
+	private static function setHoveredNode(node:CouncilNode):void {
+		if (node == CouncilNode.hoveredNode) { return; }
 		var i:uint;
-		var prevSelectedNode:CouncilNode = CouncilNode.selectedNode;
-		CouncilNode.selectedNode = node;
+		var prevHoveredNode:CouncilNode = CouncilNode.hoveredNode;
+		CouncilNode.hoveredNode = node;
 		var otherNodeName:String;
 		var otherNode:CouncilNode;
-		if (prevSelectedNode != null) {
-			prevSelectedNode.drawNode();
+		if (prevHoveredNode != null) {
+			prevHoveredNode.drawNode();
 			for (i = 0; i < WEF.instance.nodes.length; i++) { // set all nodes to unrelated
 				WEF.instance.nodes[i].setRelated(false);
 			}
@@ -45,8 +56,36 @@ public class CouncilNode {
 				if (otherNode.hasEdgeTo(node)) { otherNode.setRelated(true); }
 			}
 		}
-		node.drawNode();
 		WEF.instance.updateEdges();
+	}
+
+	private static function setSelectedNode(node:CouncilNode):void {
+		if (node == CouncilNode.selectedNode) { return; } // no-op
+		var i:uint;
+		var prevSelectedNode:CouncilNode = CouncilNode.selectedNode;
+		CouncilNode.selectedNode = node;
+
+		var otherNodeName:String;
+		var otherNode:CouncilNode;
+		if (prevSelectedNode != null) {
+			prevSelectedNode.drawNode();
+			for (i = 0; i < WEF.instance.nodes.length; i++) {
+				WEF.instance.nodes[i].setRelated(false);
+			}
+		}
+		if (node != null) {
+			node.drawNode();
+			for (i = 0; i < node.outboundData.length; i++) {
+				otherNodeName = node.outboundData[i].token;
+				otherNode = WEF.instance.nodesByName[otherNodeName];
+				otherNode.setRelated(true);
+			}
+			for (i = 0; i < WEF.instance.nodes.length; i++) {
+				otherNode = WEF.instance.nodes[i];
+				if (otherNode.hasEdgeTo(node)) { otherNode.setRelated(true); }
+			}
+			WEF.instance.drawSecondaryCenter(colorSchemesByCategoryId[node.categoryId].selected);
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -58,14 +97,17 @@ public class CouncilNode {
 
 	private var id:uint;
 	private var theta:Number;
+	private var isRelated:Boolean = false;
 
+	// visuals
 	private var nodeRoot:Sprite;
 	private var nodeShape:Shape;
 	private var nameLabelContain:Sprite;
 	private var nameLabel:Label;
 	private var edges:Array = [];
 
-	private var isRelated:Boolean = false;
+	private var srcSpeechBubble:DisplayObject = null;
+	private var dstSpeechBubble:DisplayObject = null;
 
 	public function CouncilNode(categoryId:uint, nodeInfo:Object) {
 		this.categoryId = categoryId;
@@ -95,8 +137,8 @@ public class CouncilNode {
 
 	// accessors
 
-	public function getX():Number { return Config.RADIUS * Math.cos(this.theta); }
-	public function getY():Number { return Config.RADIUS * Math.sin(this.theta); }
+	public function getX():Number { return RADIUS * Math.cos(this.theta); }
+	public function getY():Number { return RADIUS * Math.sin(this.theta); }
 
 	public function hasEdgeTo(other:CouncilNode):Boolean {
 		for (var i:uint = 0; i < outboundData.length; i++) {
@@ -121,8 +163,8 @@ public class CouncilNode {
 			this.nameLabel.align = TextFormatAlign.RIGHT;
 		}
 		else {
-			this.nameLabelContain.x = this.getX() * ((Config.RADIUS + 200) / Config.RADIUS);
-			this.nameLabelContain.y = this.getY() * ((Config.RADIUS + 200) / Config.RADIUS);
+			this.nameLabelContain.x = this.getX() * ((RADIUS + 200) / RADIUS);
+			this.nameLabelContain.y = this.getY() * ((RADIUS + 200) / RADIUS);
 			this.nameLabelContain.rotation = (theta + Math.PI) * 180 / Math.PI;
 			this.nameLabel.align = TextFormatAlign.LEFT;
 		}
@@ -139,18 +181,22 @@ public class CouncilNode {
 	// event handlers
 
    private function onNodeHover(e:MouseEvent):void {
-		CouncilNode.setSelectedNode(this);
+		if (CouncilNode.selectedNode != null) { return; }
+		CouncilNode.setHoveredNode(this);
 	}
 	private function onNodeUnhover(e:MouseEvent):void {
+		if (CouncilNode.selectedNode != null) { return; }
 		var relatedObject:DisplayObject = e.relatedObject as DisplayObject;
 		if (this.nodeRoot.contains(relatedObject) || this.nameLabelContain.contains(relatedObject)) {
 			return;
 		}
-		if (CouncilNode.selectedNode == this) {
-			CouncilNode.setSelectedNode(null);
+		if (CouncilNode.hoveredNode == this) {
+			CouncilNode.setHoveredNode(null);
 		}
 	}
 	private function onClickNode(e:MouseEvent):void {
+		CouncilNode.setHoveredNode(null);
+		CouncilNode.setSelectedNode(this);
 		// oh snap
 	}
 
@@ -161,28 +207,93 @@ public class CouncilNode {
 		var angle1:Number = this.theta - dThetaOver2;
 		var angle2:Number = this.theta;
 		var angle3:Number = this.theta + dThetaOver2;
-		var innerRadius:Number = Config.RADIUS;
-		var outerRadius:Number = Config.RADIUS + 210;
+		var innerRadius:Number = RADIUS;
+		var outerRadius:Number = RADIUS + 210;
 		var OUTERRADIUS:Number = outerRadius / Math.cos(dThetaOver2);
 
-		var zebra:String = "zebra" + (this.id % 2 ? "0" : "1");
-		var color:uint = colorSchemesByCategoryId[this.categoryId][zebra];
-		if (this == selectedNode) {
+		var color:uint;
+		if (this == CouncilNode.hoveredNode || this == CouncilNode.selectedNode) {
 			color = colorSchemesByCategoryId[this.categoryId].selected;
 		}
 		else if (this.isRelated) {
 			color = colorSchemesByCategoryId[this.categoryId].related;
 		}
+		else {
+			color = colorSchemesByCategoryId[this.categoryId]["zebra" + (this.id % 2 ? "0":"1")];
+		}
 
-		this.nodeShape.graphics.clear();
-		this.nodeShape.graphics.lineStyle(1, 0x000000);
-		this.nodeShape.graphics.moveTo (innerRadius * Math.cos(angle1), innerRadius * Math.sin(angle1));
-		this.nodeShape.graphics.beginFill(color);
-		this.nodeShape.graphics.lineTo (outerRadius * Math.cos(angle1), outerRadius * Math.sin(angle1));
-		this.nodeShape.graphics.curveTo(OUTERRADIUS * Math.cos(angle2), OUTERRADIUS * Math.sin(angle2),
+		var nodeGfx:Graphics = this.nodeShape.graphics;
+		nodeGfx.clear();
+		//nodeGfx.lineStyle(1, 0x000000);
+		nodeGfx.moveTo (innerRadius * Math.cos(angle1), innerRadius * Math.sin(angle1));
+		nodeGfx.beginFill(color);
+		nodeGfx.lineTo (outerRadius * Math.cos(angle1), outerRadius * Math.sin(angle1));
+		nodeGfx.curveTo(OUTERRADIUS * Math.cos(angle2), OUTERRADIUS * Math.sin(angle2),
 		                                outerRadius * Math.cos(angle3), outerRadius * Math.sin(angle3));
-		this.nodeShape.graphics.lineTo (innerRadius * Math.cos(angle3), innerRadius * Math.sin(angle3));
-		this.nodeShape.graphics.endFill();
+		nodeGfx.lineTo (innerRadius * Math.cos(angle3), innerRadius * Math.sin(angle3));
+		nodeGfx.endFill();
+
+		if (CouncilNode.selectedNode != null) {
+			var toSelected:Boolean = this.hasEdgeTo(CouncilNode.selectedNode);
+			var fromSelected:Boolean = CouncilNode.selectedNode.hasEdgeTo(this);
+			var smallRadius:Number;
+			var SMALLRADIUS:Number;
+			if (toSelected && !fromSelected) {
+				nodeGfx.moveTo (innerRadius * Math.cos(angle1), innerRadius * Math.sin(angle1));
+				nodeGfx.beginFill(color);
+				nodeGfx.lineTo (R_SRC0 * Math.cos(angle1), R_SRC0 * Math.sin(angle1));
+				nodeGfx.lineTo (R_SRC1 * Math.cos(angle2), R_SRC1 * Math.sin(angle2));
+				nodeGfx.lineTo (R_SRC0 * Math.cos(angle3), R_SRC0 * Math.sin(angle3));
+				nodeGfx.lineTo (innerRadius * Math.cos(angle3), innerRadius * Math.sin(angle3));
+				nodeGfx.endFill();
+			}
+			else if (fromSelected && !toSelected) {
+				color = colorSchemesByCategoryId[ CouncilNode.selectedNode.categoryId ].selected;
+				nodeGfx.moveTo (innerRadius * Math.cos(angle1), innerRadius * Math.sin(angle1));
+				nodeGfx.beginFill(color);
+				nodeGfx.lineTo (R_DST0 * Math.cos(angle1), R_DST0 * Math.sin(angle1));
+				nodeGfx.lineTo (R_DST1 * Math.cos(angle2), R_DST1 * Math.sin(angle2));
+				nodeGfx.lineTo (R_DST0 * Math.cos(angle3), R_DST0 * Math.sin(angle3));
+				nodeGfx.lineTo (innerRadius * Math.cos(angle3), innerRadius * Math.sin(angle3));
+				nodeGfx.endFill();
+			}
+			else if (toSelected && fromSelected) {
+				color = mutualArrowColor;
+				nodeGfx.moveTo (R_SRC0 * Math.cos(angle1), R_SRC0 * Math.sin(angle1));
+				nodeGfx.beginFill(color);
+				nodeGfx.lineTo (R_SRC1 * Math.cos(angle2), R_SRC1 * Math.sin(angle2));
+				nodeGfx.lineTo (R_SRC0 * Math.cos(angle3), R_SRC0 * Math.sin(angle3));
+				nodeGfx.lineTo (R_DST0 * Math.cos(angle3), R_DST0 * Math.sin(angle3));
+				nodeGfx.lineTo (R_DST1 * Math.cos(angle2), R_DST1 * Math.sin(angle2));
+				nodeGfx.lineTo (R_DST0 * Math.cos(angle1), R_DST0 * Math.sin(angle1));
+				nodeGfx.endFill();
+			}
+			// and now for the comments
+			if (toSelected) {
+				if (srcSpeechBubble == null) {
+					srcSpeechBubble = WEF.instance.newSpeechBubble();
+				}
+				srcSpeechBubble.x = R_SRC0 * Math.cos(angle2) - srcSpeechBubble.width/2;
+				srcSpeechBubble.y = R_SRC0 * Math.sin(angle2) - srcSpeechBubble.height/2;
+				WEF.instance.commentLayer.addChild(srcSpeechBubble); // TODO: sort
+			}
+			else if (srcSpeechBubble != null) {
+				WEF.instance.commentLayer.removeChild(srcSpeechBubble);
+				srcSpeechBubble = null;
+			}
+			if (fromSelected) {
+				if (dstSpeechBubble == null) {
+					dstSpeechBubble = WEF.instance.newSpeechBubble();
+				}
+				dstSpeechBubble.x = R_DST0 * Math.cos(angle2) - dstSpeechBubble.width/2;
+				dstSpeechBubble.y = R_DST0 * Math.sin(angle2) - dstSpeechBubble.height/2;
+				WEF.instance.commentLayer.addChild(dstSpeechBubble); // TODO: sort
+			}
+			else if (dstSpeechBubble != null) {
+				WEF.instance.commentLayer.removeChild(dstSpeechBubble);
+				dstSpeechBubble = null;
+			}
+		}
 	}
 
 
@@ -196,14 +307,14 @@ public class CouncilNode {
 			var outboundDatum:Object = outboundData[i];
 			var other:CouncilNode = WEF.instance.nodesByName[outboundDatum.token];
 			var color:uint;
-			if (CouncilNode.selectedNode == null) {
+			if (CouncilNode.hoveredNode == null) {
 				if (outboundDatum.score < 0.5) { continue; } // enforce threshold for global view
 				color = defaultEdgeColor;
 			}
-			else if (CouncilNode.selectedNode == this) {
+			else if (CouncilNode.hoveredNode == this) {
 				color = colorSchemesByCategoryId[this.categoryId].selected;
 			}
-			else if (CouncilNode.selectedNode == other) {
+			else if (CouncilNode.hoveredNode == other) {
 				color = colorSchemesByCategoryId[this.categoryId].related;
 			}
 			else {
@@ -216,7 +327,7 @@ public class CouncilNode {
 			edge.graphics.moveTo(this.getX(), this.getY());
 			var dx:Number = other.getX() - this.getX();
 			var dy:Number = other.getY() - this.getY();
-			var ds:Number = Math.sqrt(dx*dx + dy*dy) / Config.RADIUS;
+			var ds:Number = Math.sqrt(dx*dx + dy*dy) / RADIUS;
 
 			var anchorX:Number = ((other.getX() + this.getX()) / 2.0 + 0*ds) / (1 + ds*10);
 			var anchorY:Number = ((other.getY() + this.getY()) / 2.0 + 0*ds) / (1 + ds*10);

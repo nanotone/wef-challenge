@@ -4,6 +4,8 @@ import flash.display.*;
 import flash.events.*;
 import flash.net.*;
 
+import mx.core.BitmapAsset;
+
 [SWF(backgroundColor="#FFFFFF", width="800", height="600")]
 public class WEF extends Sprite {
 
@@ -15,10 +17,16 @@ public class WEF extends Sprite {
 	[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
 	private var __andika:Class;
 
+	[Embed(source="speech.png")]
+	private var speechBubbleCls:Class;
+	private var speechBubble:Bitmap;
+
 	public var canvas:Sprite;
 	public var nodeLayer:Sprite;
 	public var edgeLayer:Sprite;
 	public var textLayer:Sprite;
+	public var secondary:Shape;
+	public var commentLayer:Sprite;
 
 	public var nodes:Array = [];
 
@@ -28,6 +36,10 @@ public class WEF extends Sprite {
 		Debug.attachTo(this);
 		WEF.instance = this;
 
+		speechBubble = new speechBubbleCls();
+		speechBubble.scaleX = 0.1;
+		speechBubble.scaleY = 0.1;
+
 		var node:CouncilNode;
 
 		canvas = new Sprite();
@@ -36,9 +48,14 @@ public class WEF extends Sprite {
 		nodeLayer = new Sprite();
 		edgeLayer = new Sprite();
 		textLayer = new Sprite();
+		secondary = new Shape();
+		commentLayer = new Sprite();
 		canvas.addChild(edgeLayer);
+		canvas.addChild(secondary);
 		canvas.addChild(nodeLayer);
 		canvas.addChild(textLayer);
+		//canvas.addChild(speechBubble);
+		canvas.addChild(commentLayer);
 
 		var i:uint;
 
@@ -58,7 +75,14 @@ public class WEF extends Sprite {
 			nodes[i].setId(i);
 		}
 		this.updateEdges();
-		this.addEventListener(Event.ENTER_FRAME, update);
+		//this.addEventListener(Event.ENTER_FRAME, update);
+	}
+
+	public function newSpeechBubble():DisplayObject {
+		var obj:DisplayObject = new Bitmap(speechBubble.bitmapData);
+		obj.scaleX = 0.05;
+		obj.scaleY = 0.05;
+		return obj;
 	}
 
 	public function updateEdges():void {
@@ -67,8 +91,16 @@ public class WEF extends Sprite {
 		}
 	}
 
+	public function drawSecondaryCenter(color:uint):void {
+		secondary.graphics.clear();
+		secondary.graphics.beginFill(color);
+		secondary.graphics.drawCircle(0, 0, CouncilNode.RADIUS);
+		secondary.graphics.beginFill(color * 3 / 2);
+		secondary.graphics.drawCircle(0, 0, CouncilNode.R_SRC0);
+		secondary.graphics.endFill();
+	}
 
 	public function update(event:Event):void {
-		//Debug.log("aoeu");
+		Debug.log("aoeu");
 	}
 }}
