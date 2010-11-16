@@ -16,13 +16,13 @@ public class WEF extends Sprite {
 	public static var instance:WEF;
 
 	//[Embed(source='AndBasR.ttf', fontName='AndikaBasic', embedAsCFF='false')]
-	[Embed(source='HelveticaNeue.otf', fontName='AndikaBasic', embedAsCFF='false')]
+	[Embed(source="embed/HelveticaNeue.otf", fontName="AndikaBasic", embedAsCFF="false")]
 	private var __andika:Class;
 
-	[Embed(source="FINAL_BG_all.jpg")]
+	[Embed(source="embed/FINAL_BG_all.jpg")]
 	private var bgCls:Class;
 
-	[Embed(source="speech.png")]
+	[Embed(source="embed/speech.png")]
 	private var speechBubbleCls:Class;
 	private var speechBubble:Bitmap;
 
