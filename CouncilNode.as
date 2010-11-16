@@ -10,7 +10,14 @@ public class CouncilNode {
 
 	public static var selectedNode:CouncilNode = null;
 
-	private static var nodeColor:uint = 0xFFB060;
+	public static const colorSchemesByCategoryId:Array = [
+		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6 }, // blue
+		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF }, // yellow
+		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC }, // green
+		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0 }, // red
+		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB } ]; // orange
+
+	//private static var nodeColor:uint = 0xFFB060;
 	private static var selectedNodeColor:uint = 0xFF0000;
 	private static var relatedNodeColor:uint = 0xFF8080;
 
@@ -50,10 +57,12 @@ public class CouncilNode {
 
 	///////////////////////////////////////////////////////////////////////////////
 
+	private var categoryId:uint;
 	private var token:String;
 	private var fullName:String;
 	private var outboundData:Array;
 
+	private var id:uint;
 	private var theta:Number;
 
 	private var nodeRoot:Sprite;
@@ -64,7 +73,8 @@ public class CouncilNode {
 
 	private var isRelated:Boolean = false;
 
-	public function CouncilNode(nodeInfo:Object) {
+	public function CouncilNode(categoryId:uint, nodeInfo:Object) {
+		this.categoryId = categoryId;
 		this.token = nodeInfo.token;
 		this.fullName = nodeInfo.name;
 		this.outboundData = nodeInfo.outbound;
@@ -103,6 +113,7 @@ public class CouncilNode {
 	// mutators
 
 	public function setId(id:uint):void {
+		this.id = id;
 		this.theta = id * WEF.twoPi / WEF.instance.nodes.length;
 		while (Math.abs(this.theta) > Math.PI + 0.01) {
 			this.theta -= (this.theta > 0 ? WEF.twoPi : -WEF.twoPi);
@@ -155,9 +166,14 @@ public class CouncilNode {
 		var outerRadius:Number = Config.RADIUS + 210;
 		var OUTERRADIUS:Number = outerRadius / Math.cos(dThetaOver2);
 
-		var color:uint = nodeColor;
+		var zebra:String = "zebra" + (this.id % 2 ? "0" : "1");
+		var color:uint = colorSchemesByCategoryId[this.categoryId][zebra];
+		if (this.id == 5) {
+			color = 0xFF0000;
+			color = 0xDFF5F8;
+		}
 		if (this == selectedNode) {
-			color = selectedNodeColor;
+			color = colorSchemesByCategoryId[this.categoryId].zebra1;
 		}
 		else if (this.isRelated) {
 			color = relatedNodeColor;

@@ -41,15 +41,17 @@ public class WEF extends Sprite {
 		canvas.addChild(textLayer);
 
 		var i:uint;
-		var data:Object = Data.data;
-		for (var categoryName:String in data) {
-			var councilData:Array = data[categoryName];
+
+		var categoryId:uint = 0;
+		for (var categoryName:String in Data.data) {
+			var councilData:Array = Data.data[categoryName];
 			for (i = 0; i < councilData.length; i++) {
 				var datum:Object = councilData[i];
-				node = new CouncilNode(datum);
+				node = new CouncilNode(categoryId, datum);
 				nodesByName[datum.token] = node;
 				nodes.push(node);
 			}
+			categoryId += 1;
 		}
 
 		for (i = 0; i < nodes.length; i++) {
