@@ -79,10 +79,7 @@ public class WEF extends Sprite {
 	}
 
 	public function newSpeechBubble():DisplayObject {
-		var obj:DisplayObject = new Bitmap(speechBubble.bitmapData);
-		obj.scaleX = 0.05;
-		obj.scaleY = 0.05;
-		return obj;
+		return new Bitmap(speechBubble.bitmapData);
 	}
 
 	public function updateEdges():void {

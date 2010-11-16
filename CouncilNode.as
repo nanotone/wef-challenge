@@ -16,6 +16,9 @@ public class CouncilNode {
 	public static const R_DST0:uint = RADIUS + 40;
 	public static const R_DST1:uint = R_DST0 + 8;
 
+	public static const SPEECH_BUBBLE_OFFSET_X:int = -6;
+	public static const SPEECH_BUBBLE_OFFSET_Y:int = -21;
+
 	public static var hoveredNode:CouncilNode = null;
 	public static var selectedNode:CouncilNode = null;
 
@@ -273,8 +276,8 @@ public class CouncilNode {
 				if (srcSpeechBubble == null) {
 					srcSpeechBubble = WEF.instance.newSpeechBubble();
 				}
-				srcSpeechBubble.x = R_SRC0 * Math.cos(angle2) - srcSpeechBubble.width/2;
-				srcSpeechBubble.y = R_SRC0 * Math.sin(angle2) - srcSpeechBubble.height/2;
+				srcSpeechBubble.x = R_SRC0 * Math.cos(angle2) + SPEECH_BUBBLE_OFFSET_X;
+				srcSpeechBubble.y = R_SRC0 * Math.sin(angle2) + SPEECH_BUBBLE_OFFSET_Y;
 				WEF.instance.commentLayer.addChild(srcSpeechBubble); // TODO: sort
 			}
 			else if (srcSpeechBubble != null) {
@@ -285,8 +288,8 @@ public class CouncilNode {
 				if (dstSpeechBubble == null) {
 					dstSpeechBubble = WEF.instance.newSpeechBubble();
 				}
-				dstSpeechBubble.x = R_DST0 * Math.cos(angle2) - dstSpeechBubble.width/2;
-				dstSpeechBubble.y = R_DST0 * Math.sin(angle2) - dstSpeechBubble.height/2;
+				dstSpeechBubble.x = R_DST0 * Math.cos(angle2) + SPEECH_BUBBLE_OFFSET_X;
+				dstSpeechBubble.y = R_DST0 * Math.sin(angle2) + SPEECH_BUBBLE_OFFSET_Y;
 				WEF.instance.commentLayer.addChild(dstSpeechBubble); // TODO: sort
 			}
 			else if (dstSpeechBubble != null) {
