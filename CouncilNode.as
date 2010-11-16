@@ -11,11 +11,11 @@ public class CouncilNode {
 	public static var selectedNode:CouncilNode = null;
 
 	public static const colorSchemesByCategoryId:Array = [
-		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6, selected: 0x005E70, related: 0xFF0000 }, // blue
-		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF, selected: 0x925517, related: 0xFF0000 }, // yellow
-		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC, selected: 0x006E66, related: 0xFF0000 }, // green
-		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0, selected: 0x740728, related: 0xFF0000 }, // red
-		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB, selected: 0x8A200A, related: 0xFF0000 } ]; // orange
+		{zebra0: 0xDFF5F8, zebra1: 0xD4F1F6, selected: 0x005E70, related: 0x25B5D5 }, // blue
+		{zebra0: 0xFFF0DB, zebra1: 0xFFEBCF, selected: 0x925517, related: 0xD6AD60 }, // yellow
+		{zebra0: 0xD0E7E4, zebra1: 0xC1E0DC, selected: 0x006E66, related: 0x45BDAB }, // green
+		{zebra0: 0xF7DAE0, zebra1: 0xEEC8D0, selected: 0x740728, related: 0xED346B }, // red
+		{zebra0: 0xFFDDD0, zebra1: 0xF9CDBB, selected: 0x8A200A, related: 0xF25B38 } ]; // orange
 
 	private static var defaultEdgeColor:uint = 0xE0E0E0;
 	//private static var unrelatedEdgeColor:uint = 0xA0A0A0;
@@ -79,6 +79,7 @@ public class CouncilNode {
 
       this.nodeRoot.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
 		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeUnhover);
+		this.nodeRoot.addEventListener(MouseEvent.CLICK, this.onClickNode);
 		WEF.instance.nodeLayer.addChild(this.nodeRoot);
 
 		this.nameLabelContain = new Sprite();
@@ -89,6 +90,7 @@ public class CouncilNode {
 
 		this.nameLabel.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
 		this.nameLabel.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeHover);
+		this.nameLabel.addEventListener(MouseEvent.CLICK, this.onClickNode);
 	}
 
 	// accessors
@@ -148,6 +150,9 @@ public class CouncilNode {
 			CouncilNode.setSelectedNode(null);
 		}
 	}
+	private function onClickNode(e:MouseEvent):void {
+		// oh snap
+	}
 
 	// graphics
 
@@ -192,14 +197,14 @@ public class CouncilNode {
 			var other:CouncilNode = WEF.instance.nodesByName[outboundDatum.token];
 			var color:uint;
 			if (CouncilNode.selectedNode == null) {
-				color = defaultEdgeColor;
 				if (outboundDatum.score < 0.5) { continue; } // enforce threshold for global view
+				color = defaultEdgeColor;
 			}
 			else if (CouncilNode.selectedNode == this) {
 				color = colorSchemesByCategoryId[this.categoryId].selected;
 			}
 			else if (CouncilNode.selectedNode == other) {
-				color = colorSchemesByCategoryId[other.categoryId].related;
+				color = colorSchemesByCategoryId[this.categoryId].related;
 			}
 			else {
 				continue;
