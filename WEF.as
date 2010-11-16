@@ -3,8 +3,9 @@ package {
 import flash.display.*;
 import flash.events.*;
 import flash.net.*;
+import flash.text.*;
 
-import mx.core.BitmapAsset;
+import controls.*;
 
 [SWF(backgroundColor="#FFFFFF", width="800", height="600")]
 public class WEF extends Sprite {
@@ -28,9 +29,15 @@ public class WEF extends Sprite {
 	public var secondary:Shape;
 	public var commentLayer:Sprite;
 
+	public var commentLayer2:Sprite; // the black popup
+	public var commentShape:Shape;
+	public var commentTitle:Label;
+	public var commentField:TextField;
+
 	public var nodes:Array = [];
 
 	public var nodesByName:Object = {};
+
 
 	public function WEF() {
 		Debug.attachTo(this);
@@ -50,18 +57,33 @@ public class WEF extends Sprite {
 		textLayer = new Sprite();
 		secondary = new Shape();
 		commentLayer = new Sprite();
+		commentLayer2 = new Sprite();
 		canvas.addChild(edgeLayer);
 		canvas.addChild(secondary);
 		canvas.addChild(nodeLayer);
 		canvas.addChild(textLayer);
-		//canvas.addChild(speechBubble);
 		canvas.addChild(commentLayer);
+		//canvas.addChild(commentLayer2);
+
+		commentLayer2 = new Sprite();
+		commentShape = new Shape();
+		commentLayer2.addChild(commentShape);
+		commentTitle = new Label("WE WANT TO MEET SELECTED COUNCIL BECAUSE", {width: 300});
+		commentLayer2.addChild(commentTitle);
+		commentField = new TextField();
+		commentField.multiline = true;
+		commentField.wordWrap = true;
+		commentField.width = 300;
+		commentField.height = 400;
+		commentField.y = 20;
+		commentLayer2.addChild(commentField);
+		
 
 		var i:uint;
 
 		var categoryId:uint = 0;
-		for (var categoryName:String in Data.data) {
-			var councilData:Array = Data.data[categoryName];
+		for (var categoryName:String in Data.data.categoryExport) {
+			var councilData:Array = Data.data.categoryExport[categoryName];
 			for (i = 0; i < councilData.length; i++) {
 				var datum:Object = councilData[i];
 				node = new CouncilNode(categoryId, datum);
@@ -79,7 +101,10 @@ public class WEF extends Sprite {
 	}
 
 	public function newSpeechBubble():DisplayObject {
-		return new Bitmap(speechBubble.bitmapData);
+		var obj:DisplayObject = new Bitmap(speechBubble.bitmapData);
+		obj.x = CouncilNode.SPEECH_BUBBLE_OFFSET_X;
+		obj.y = CouncilNode.SPEECH_BUBBLE_OFFSET_Y;
+		return obj;
 	}
 
 	public function updateEdges():void {
@@ -95,6 +120,21 @@ public class WEF extends Sprite {
 		secondary.graphics.beginFill(color * 3 / 2);
 		secondary.graphics.drawCircle(0, 0, CouncilNode.R_SRC0);
 		secondary.graphics.endFill();
+	}
+
+	public function showComment(x:Number, y:Number, text:String):void {
+		commentField.htmlText = text;
+		commentLayer2.x = x + 3;
+		commentLayer2.y = y + 3;
+
+		commentShape.graphics.beginFill(0x808080);
+		commentShape.graphics.drawRoundRect(0, 0, 300, 150, 15);
+		commentShape.graphics.endFill();
+
+		canvas.addChild(commentLayer2);
+	}
+	public function hideComment():void {
+		canvas.removeChild(commentLayer2);
 	}
 
 	public function update(event:Event):void {

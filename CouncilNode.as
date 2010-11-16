@@ -109,8 +109,8 @@ public class CouncilNode {
 	private var nameLabel:Label;
 	private var edges:Array = [];
 
-	private var srcSpeechBubble:DisplayObject = null;
-	private var dstSpeechBubble:DisplayObject = null;
+	private var srcSpeechBubble:Sprite = null;
+	private var dstSpeechBubble:Sprite = null;
 
 	public function CouncilNode(categoryId:uint, nodeInfo:Object) {
 		this.categoryId = categoryId;
@@ -272,31 +272,65 @@ public class CouncilNode {
 				nodeGfx.endFill();
 			}
 			// and now for the comments
+			var commentKey:String;
 			if (toSelected) {
-				if (srcSpeechBubble == null) {
-					srcSpeechBubble = WEF.instance.newSpeechBubble();
+				commentKey = this.token + "-" + CouncilNode.selectedNode.token;
+				if (Data.data.comments.hasOwnProperty(commentKey)) { // actually have comment?
+					if (srcSpeechBubble == null) {
+						srcSpeechBubble = new Sprite();
+						srcSpeechBubble.addChild(WEF.instance.newSpeechBubble());
+						srcSpeechBubble.addEventListener(MouseEvent.MOUSE_OVER, this.onHoverSrcBubble);
+						srcSpeechBubble.addEventListener(MouseEvent.MOUSE_OUT, this.onUnhoverSrcBubble);
+					}
+					srcSpeechBubble.x = R_SRC0 * Math.cos(angle2);
+					srcSpeechBubble.y = R_SRC0 * Math.sin(angle2);
+					WEF.instance.commentLayer.addChild(srcSpeechBubble); // TODO: sort
+					srcSpeechBubble.name = commentKey;
 				}
-				srcSpeechBubble.x = R_SRC0 * Math.cos(angle2) + SPEECH_BUBBLE_OFFSET_X;
-				srcSpeechBubble.y = R_SRC0 * Math.sin(angle2) + SPEECH_BUBBLE_OFFSET_Y;
-				WEF.instance.commentLayer.addChild(srcSpeechBubble); // TODO: sort
 			}
 			else if (srcSpeechBubble != null) {
-				WEF.instance.commentLayer.removeChild(srcSpeechBubble);
-				srcSpeechBubble = null;
+				if (WEF.instance.commentLayer.contains(srcSpeechBubble)) {
+					WEF.instance.commentLayer.removeChild(srcSpeechBubble);
+				}
+				//srcSpeechBubble = null;
 			}
 			if (fromSelected) {
-				if (dstSpeechBubble == null) {
-					dstSpeechBubble = WEF.instance.newSpeechBubble();
+				commentKey = CouncilNode.selectedNode.token + "-" + this.token;
+				if (Data.data.comments.hasOwnProperty(commentKey)) { // actually have comment?
+					if (dstSpeechBubble == null) {
+						dstSpeechBubble = new Sprite();
+						dstSpeechBubble.addChild(WEF.instance.newSpeechBubble());
+						dstSpeechBubble.addEventListener(MouseEvent.MOUSE_OVER, this.onHoverDstBubble);
+						dstSpeechBubble.addEventListener(MouseEvent.MOUSE_OUT, this.onUnhoverDstBubble);
+					}
+					dstSpeechBubble.x = R_DST0 * Math.cos(angle2);
+					dstSpeechBubble.y = R_DST0 * Math.sin(angle2);
+					WEF.instance.commentLayer.addChild(dstSpeechBubble); // TODO: sort
+					dstSpeechBubble.name = commentKey;
 				}
-				dstSpeechBubble.x = R_DST0 * Math.cos(angle2) + SPEECH_BUBBLE_OFFSET_X;
-				dstSpeechBubble.y = R_DST0 * Math.sin(angle2) + SPEECH_BUBBLE_OFFSET_Y;
-				WEF.instance.commentLayer.addChild(dstSpeechBubble); // TODO: sort
 			}
 			else if (dstSpeechBubble != null) {
-				WEF.instance.commentLayer.removeChild(dstSpeechBubble);
-				dstSpeechBubble = null;
+				if (WEF.instance.commentLayer.contains(dstSpeechBubble)) {
+					WEF.instance.commentLayer.removeChild(dstSpeechBubble);
+				}
+				//dstSpeechBubble = null;
 			}
 		}
+	}
+
+	private function onHoverSrcBubble(e:MouseEvent):void {
+		var comment:String = Data.data.comments[e.currentTarget.name];
+		WEF.instance.showComment(srcSpeechBubble.x, srcSpeechBubble.y, comment);
+	}
+	private function onHoverDstBubble(e:MouseEvent):void {
+		var comment:String = Data.data.comments[e.currentTarget.name];
+		WEF.instance.showComment(dstSpeechBubble.x, dstSpeechBubble.y, comment);
+	}
+	private function onUnhoverSrcBubble(e:MouseEvent):void {
+		WEF.instance.hideComment();
+	}
+	private function onUnhoverDstBubble(e:MouseEvent):void {
+		WEF.instance.hideComment();
 	}
 
 

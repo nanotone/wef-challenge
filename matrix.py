@@ -26,15 +26,22 @@ if currentCategory:
 import re
 
 COMMA = "<COMMA>"
+QUOTE = "<QUOTE>"
 
 def csvSplit(line):
 	line = line.strip()
+	line = line.replace('""', QUOTE)
 	line = re.sub(r'"([^"]+)"', (lambda m: m.group(1).replace(",", COMMA)), line)
-	return [cell.replace(COMMA, ",") for cell in line.split(",")]
+	return [cell.replace(COMMA, ",").replace(QUOTE, '"') for cell in line.split(",")]
 
 matrix = [csvSplit(line) for line in open("matrix2.csv")]
 
 def tokenize(text): return re.sub(r'[^\w\.]+', "_", text)
+def canonicize(name):
+	if ("Women" in name) and ("Empowerment" in name): return "Women's Empowerment"
+	if "Chronic Diseases" in name: return "Chronic Diseases & Conditions"
+	if ("Ecosystems" in name) and ("Biodiversity" in name): return "Ecosystems & Biodiversity Loss"
+	return name
 
 rows = [ {"token": tokenize(row[0]), "data": row[1:] } for row in matrix[1:]]
 
@@ -61,6 +68,18 @@ for (i, name) in enumerate(matrix[0][1:]):
 
 ###############################################################################
 
+comments = [csvSplit(line) for line in open("comments2.csv")]
+commentsDict = {}
+for row in comments[1:]:
+	srcName = tokenize(canonicize(row[0]))
+	for i in range(3, len(row)-1, 2):
+		dstName = tokenize(canonicize(row[i]))
+		comment = row[i+1].strip()
+		if comment:
+			#print "%s-%s: %s" % (srcName, dstName, comment)
+			commentsDict["%s-%s" % (srcName, dstName)] = comment
+	#print ""
+
+
 import makeData
-#makeData.dumpToFlex(nodeList)
-makeData.dumpToFlex(categoryExport)
+makeData.dumpToFlex({'categoryExport': categoryExport, 'comments':commentsDict})
