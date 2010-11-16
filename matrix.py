@@ -5,7 +5,7 @@ import pprint
 categoryExport = {}
 currentCategory = None
 currentArray = []
-for line in open("categories2.txt"):
+for line in open("data/categories2.txt"):
 	line = line.strip()
 	if not currentCategory:
 		currentCategory = line
@@ -34,7 +34,7 @@ def csvSplit(line):
 	line = re.sub(r'"([^"]+)"', (lambda m: m.group(1).replace(",", COMMA)), line)
 	return [cell.replace(COMMA, ",").replace(QUOTE, '"') for cell in line.split(",")]
 
-matrix = [csvSplit(line) for line in open("matrix2.csv")]
+matrix = [csvSplit(line) for line in open("data/matrix2.csv")]
 
 def tokenize(text): return re.sub(r'[^\w\.]+', "_", text)
 def canonicize(name):
@@ -68,7 +68,7 @@ for (i, name) in enumerate(matrix[0][1:]):
 
 ###############################################################################
 
-comments = [csvSplit(line) for line in open("comments2.csv")]
+comments = [csvSplit(line) for line in open("data/comments2.csv")]
 commentsDict = {}
 for row in comments[1:]:
 	srcName = tokenize(canonicize(row[0]))

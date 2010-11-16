@@ -3,7 +3,7 @@ if __name__ == "__main__":
 	f.write("""package {
 public class Circles {
 """)
-	lines = [l.strip() for l in open("naming_convention.txt").readlines()]
+	lines = [l.strip() for l in open("data/naming_convention.txt").readlines()]
 	for line in lines:
 		f.write("""[Embed(source="circles/%s_Countries.gif")]
 public var %s_Countries:Class;
