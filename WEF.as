@@ -76,9 +76,11 @@ public class WEF extends Sprite {
 		backButton = new backButtonCls();
 		backButtonSprite.addChild(backButton);
 		backButtonSprite.addEventListener(MouseEvent.CLICK, this.onClickBackButton);
-		backButtonSprite.x = 920;
-		backButtonSprite.y = -214;
+		backButtonSprite.x = 1250;
+		backButtonSprite.y = 50;
 		backButtonSprite.visible = false;
+		backButtonSprite.buttonMode = true;
+		backButtonSprite.useHandCursor = true;
 		this.addChild(backButtonSprite);
 
 		canvas = new Sprite();

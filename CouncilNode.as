@@ -14,6 +14,9 @@ public class CouncilNode {
 	public static const R_SRC0:uint = 134;//RADIUS - 30;
 	public static const R_SRC1:uint = R_SRC0 - 6;
 
+	public static const R_SPEECH_SRC:uint = 150;
+	public static const R_SPEECH_DST:uint = 200;
+
 	public static const R_DST0:uint = RADIUS + 40;
 	public static const R_DST1:uint = R_DST0 + 8;
 
@@ -96,7 +99,7 @@ public class CouncilNode {
 			for (i = 0; i < node.outboundData.length; i++) {
 				otherNodeName = node.outboundData[i].token;
 				otherNode = WEF.instance.nodesByName[otherNodeName];
-				otherNode.setRelated(0);
+				otherNode.setRelated(0.1);
 			}
 			for (i = 0; i < WEF.instance.nodes.length; i++) {
 				otherNode = WEF.instance.nodes[i];
@@ -142,6 +145,8 @@ public class CouncilNode {
 		this.nodeRoot = new Sprite();
 		this.nodeShape = new Shape();
 		this.nodeRoot.addChild(this.nodeShape);
+		this.nodeRoot.buttonMode = true;
+		this.nodeRoot.useHandCursor = true;
 
 		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OVER, this.onNodeHover);
 		this.nodeRoot.addEventListener(MouseEvent.MOUSE_OUT, this.onNodeUnhover);
@@ -149,7 +154,9 @@ public class CouncilNode {
 		WEF.instance.nodeLayer.addChild(this.nodeRoot);
 
 		this.nameLabelContain = new Sprite();
-		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 13, 'width': 200});
+		this.nameLabel = new Label(this.fullName, {'font': 'AndikaBasic', 'size': 13, 'width': 200, 'cursor': "pointer"});
+		this.nameLabelContain.buttonMode = true;
+		this.nameLabelContain.useHandCursor = true;
 		this.nameLabelContain.addChild(this.nameLabel);
 		this.nameLabel.y = - this.nameLabel.height / 2;
 		WEF.instance.textLayer.addChild(this.nameLabelContain);
@@ -316,8 +323,8 @@ public class CouncilNode {
 						srcSpeechBubble.addEventListener(MouseEvent.MOUSE_OVER, this.onHoverSrcBubble);
 						srcSpeechBubble.addEventListener(MouseEvent.MOUSE_OUT, this.onUnhoverSrcBubble);
 					}
-					srcSpeechBubble.x = R_SRC0 * Math.cos(angle2);
-					srcSpeechBubble.y = R_SRC0 * Math.sin(angle2);
+					srcSpeechBubble.x = R_SPEECH_SRC * Math.cos(angle2);
+					srcSpeechBubble.y = R_SPEECH_SRC * Math.sin(angle2);
 					WEF.instance.commentLayer.addChild(srcSpeechBubble); // TODO: sort
 					srcSpeechBubble.name = commentKey;
 				}
@@ -336,8 +343,8 @@ public class CouncilNode {
 						dstSpeechBubble.addEventListener(MouseEvent.MOUSE_OVER, this.onHoverDstBubble);
 						dstSpeechBubble.addEventListener(MouseEvent.MOUSE_OUT, this.onUnhoverDstBubble);
 					}
-					dstSpeechBubble.x = R_DST0 * Math.cos(angle2);
-					dstSpeechBubble.y = R_DST0 * Math.sin(angle2);
+					dstSpeechBubble.x = R_SPEECH_DST * Math.cos(angle2);
+					dstSpeechBubble.y = R_SPEECH_DST * Math.sin(angle2);
 					WEF.instance.commentLayer.addChild(dstSpeechBubble); // TODO: sort
 					dstSpeechBubble.name = commentKey;
 				}
